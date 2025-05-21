@@ -23,6 +23,8 @@
 #include "common/logger.h"
 #include "storage/disk/disk_manager.h"
 
+#include "fmt/ostream.h"
+
 namespace bustub {
 
 static char *buffer_used;
@@ -49,14 +51,15 @@ DiskManager::DiskManager(const std::filesystem::path &db_file) : db_file_name_(d
   db_io_.open(db_file, std::ios::binary | std::ios::in | std::ios::out);
   // directory or file does not exist
   if (!db_io_.is_open()) {
+    fprintf(stderr, "can't open db file\n");
     db_io_.clear();
     // create a new file
     db_io_.open(db_file, std::ios::binary | std::ios::trunc | std::ios::out | std::ios::in);
     if (!db_io_.is_open()) {
       throw Exception("can't open db file");
     }
+    fprintf(stderr, "can open db file\n");
   }
-
   // Initialize the database file.
   std::filesystem::resize_file(db_file, (page_capacity_ + 1) * BUSTUB_PAGE_SIZE);
   assert(static_cast<size_t>(GetFileSize(db_file_name_)) >= page_capacity_ * BUSTUB_PAGE_SIZE);
@@ -129,11 +132,11 @@ void DiskManager::ReadPage(page_id_t page_id, char *page_data) {
   }
 
   pages_[page_id] = offset;
-
+  fmt::println("Read page id{} offset = {} ",page_id, offset);
   // Set the read cursor to the page offset.
   db_io_.seekg(offset);
   db_io_.read(page_data, BUSTUB_PAGE_SIZE);
-
+  fmt::println("Read page id{} info = {} ",page_id, page_data);
   if (db_io_.bad()) {
     LOG_DEBUG("I/O error while reading page %d", page_id);
     return;

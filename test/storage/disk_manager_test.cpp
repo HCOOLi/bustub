@@ -19,7 +19,7 @@
 
 namespace bustub {
 
-static std::filesystem::path db_fname("test.bustub");
+static std::filesystem::path db_fname("test.bus");
 static std::filesystem::path log_fname("test.log");
 
 class DiskManagerTest : public ::testing::Test {

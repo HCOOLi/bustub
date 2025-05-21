@@ -27,10 +27,11 @@ namespace bustub {
  */
 template <class T>
 auto Trie::Get(std::string_view key) const -> const T * {
-  if (root_==nullptr) return nullptr;
+  if (root_ == nullptr) return nullptr;
   if (key.empty()) {
     if (root_->is_value_node_) {
-      std::shared_ptr< const TrieNodeWithValue<T>> value_node_ptr = std::dynamic_pointer_cast<const TrieNodeWithValue<T>>(root_);
+      std::shared_ptr<const TrieNodeWithValue<T>> value_node_ptr =
+          std::dynamic_pointer_cast<const TrieNodeWithValue<T>>(root_);
       return value_node_ptr->value_.get();
     }
     return nullptr;
@@ -46,7 +47,8 @@ auto Trie::Get(std::string_view key) const -> const T * {
   }
   if (last_char == key.back()) {
     if (cur_->is_value_node_) {
-      std::shared_ptr< const TrieNodeWithValue<T>> value_node_ptr = std::dynamic_pointer_cast<const TrieNodeWithValue<T>>(cur_);
+      std::shared_ptr<const TrieNodeWithValue<T>> value_node_ptr =
+          std::dynamic_pointer_cast<const TrieNodeWithValue<T>>(cur_);
       return value_node_ptr->value_.get();
     }
   }
@@ -67,24 +69,26 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
   // Note that `T` might be a non-copyable type. Always use `std::move` when creating `shared_ptr` on that value.
 
   std::shared_ptr<const TrieNode> cur_ = root_;
-  std::stack<std::pair<char,std::shared_ptr<const TrieNode>>> stack;
+  std::stack<std::pair<char, std::shared_ptr<const TrieNode>>> stack;
   for (char c : key) {
-    if (cur_==nullptr || (cur_->children_.find(c) == cur_->children_.end())) {
-      stack.emplace(c,nullptr);
-    }else {
-      stack.emplace(c,cur_);
+    if (cur_ == nullptr || (cur_->children_.find(c) == cur_->children_.end())) {
+      stack.emplace(c, nullptr);
+    } else {
+      stack.emplace(c, cur_);
       cur_ = cur_->children_.at(c);
     }
   }
 
-  std::shared_ptr<const TrieNode> last_node_ptr =  std::make_shared<TrieNodeWithValue<T>>(std::make_shared<T>(std::move(value)));;
+  std::shared_ptr<const TrieNode> last_node_ptr =
+      std::make_shared<TrieNodeWithValue<T>>(std::make_shared<T>(std::move(value)));
+  ;
   while (!stack.empty()) {
-    auto [c,cur_] = stack.top();
+    auto [c, cur_] = stack.top();
     stack.pop();
-    TrieNode last_node ;
-    if (cur_ ==nullptr){
+    TrieNode last_node;
+    if (cur_ == nullptr) {
       last_node = TrieNode();
-    }else {
+    } else {
       last_node = TrieNode(*cur_);
     }
     last_node.children_[c] = last_node_ptr;
@@ -92,7 +96,6 @@ auto Trie::Put(std::string_view key, T value) const -> Trie {
   }
 
   return Trie(last_node_ptr);
-
 
   // You should walk through the trie and create new nodes if necessary. If the node corresponding to the key already
   // exists, you should create a new `TrieNodeWithValue`.

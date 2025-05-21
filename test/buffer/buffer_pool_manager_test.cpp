@@ -14,6 +14,8 @@
 #include <filesystem>
 
 #include "buffer/buffer_pool_manager.h"
+
+#include "fmt/ostream.h"
 #include "gtest/gtest.h"
 #include "storage/page/page_guard.h"
 
@@ -29,7 +31,7 @@ void CopyString(char *dest, const std::string &src) {
   snprintf(dest, BUSTUB_PAGE_SIZE, "%s", src.c_str());
 }
 
-TEST(BufferPoolManagerTest, DISABLED_VeryBasicTest) {
+TEST(BufferPoolManagerTest,VeryBasicTest) {
   // A very basic test.
 
   auto disk_manager = std::make_shared<DiskManager>(db_fname);
@@ -44,7 +46,6 @@ TEST(BufferPoolManagerTest, DISABLED_VeryBasicTest) {
     CopyString(guard.GetDataMut(), str);
     EXPECT_STREQ(guard.GetData(), str.c_str());
   }
-
   // Check `ReadPageGuard` basic functionality.
   {
     const auto guard = bpm->ReadPage(pid);
@@ -60,7 +61,7 @@ TEST(BufferPoolManagerTest, DISABLED_VeryBasicTest) {
   ASSERT_TRUE(bpm->DeletePage(pid));
 }
 
-TEST(BufferPoolManagerTest, DISABLED_PagePinEasyTest) {
+TEST(BufferPoolManagerTest, PagePinEasyTest) {
   auto disk_manager = std::make_shared<DiskManager>(db_fname);
   auto bpm = std::make_shared<BufferPoolManager>(2, disk_manager.get());
 
@@ -71,7 +72,7 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinEasyTest) {
   const std::string str1 = "page1";
   const std::string str0updated = "page0updated";
   const std::string str1updated = "page1updated";
-
+   fmt::println("first");
   {
     auto page0_write_opt = bpm->CheckedWritePage(pageid0);
     ASSERT_TRUE(page0_write_opt.has_value());
@@ -158,7 +159,7 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinEasyTest) {
   remove(disk_manager->GetLogFileName());
 }
 
-TEST(BufferPoolManagerTest, DISABLED_PagePinMediumTest) {
+TEST(BufferPoolManagerTest, PagePinMediumTest) {
   auto disk_manager = std::make_shared<DiskManager>(db_fname);
   auto bpm = std::make_shared<BufferPoolManager>(FRAMES, disk_manager.get());
 
@@ -175,27 +176,27 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinMediumTest) {
 
   // Create a vector of unique pointers to page guards, which prevents the guards from getting destructed.
   std::vector<WritePageGuard> pages;
-
+  fmt::println("{},{}",__FILE_NAME__,__LINE__);
   // Scenario: We should be able to create new pages until we fill up the buffer pool.
   for (size_t i = 0; i < FRAMES; i++) {
     const auto pid = bpm->NewPage();
     auto page = bpm->WritePage(pid);
     pages.push_back(std::move(page));
   }
-
+  fmt::println("{},{}",__FILE_NAME__,__LINE__);
   // Scenario: All of the pin counts should be 1.
   for (const auto &page : pages) {
     const auto pid = page.GetPageId();
     EXPECT_EQ(1, bpm->GetPinCount(pid));
   }
-
+  fmt::println("{},{}",__FILE_NAME__,__LINE__);
   // Scenario: Once the buffer pool is full, we should not be able to create any new pages.
   for (size_t i = 0; i < FRAMES; i++) {
     const auto pid = bpm->NewPage();
     const auto fail = bpm->CheckedWritePage(pid);
     ASSERT_FALSE(fail.has_value());
   }
-
+  fmt::println("{},{}",__FILE_NAME__,__LINE__);
   // Scenario: Drop the first 5 pages to unpin them.
   for (size_t i = 0; i < FRAMES / 2; i++) {
     const auto pid = pages[0].GetPageId();
@@ -203,13 +204,13 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinMediumTest) {
     pages.erase(pages.begin());
     EXPECT_EQ(0, bpm->GetPinCount(pid));
   }
-
+  fmt::println("{},{}",__FILE_NAME__,__LINE__);
   // Scenario: All of the pin counts of the pages we haven't dropped yet should still be 1.
   for (const auto &page : pages) {
     const auto pid = page.GetPageId();
     EXPECT_EQ(1, bpm->GetPinCount(pid));
   }
-
+  fmt::println("{},{}",__FILE_NAME__,__LINE__);
   // Scenario: After unpinning pages {1, 2, 3, 4, 5}, we should be able to create 4 new pages and bring them into
   // memory. Bringing those 4 pages into memory should evict the first 4 pages {1, 2, 3, 4} because of LRU.
   for (size_t i = 0; i < ((FRAMES / 2) - 1); i++) {
@@ -217,13 +218,13 @@ TEST(BufferPoolManagerTest, DISABLED_PagePinMediumTest) {
     auto page = bpm->WritePage(pid);
     pages.push_back(std::move(page));
   }
-
+  fmt::println("{}",__LINE__);
   // Scenario: There should be one frame available, and we should be able to fetch the data we wrote a while ago.
   {
     const auto original_page = bpm->ReadPage(pid0);
     EXPECT_STREQ(original_page.GetData(), hello.c_str());
   }
-
+  fmt::println("{}",__LINE__);
   // Scenario: Once we unpin page 0 and then make a new page, all the buffer pages should now be pinned. Fetching page 0
   // again should fail.
   const auto last_pid = bpm->NewPage();
@@ -317,7 +318,7 @@ TEST(BufferPoolManagerTest, DISABLED_ContentionTest) {
   thread1.join();
 }
 
-TEST(BufferPoolManagerTest, DISABLED_DeadlockTest) {
+TEST(BufferPoolManagerTest, DeadlockTest) {
   auto disk_manager = std::make_shared<DiskManager>(db_fname);
   auto bpm = std::make_shared<BufferPoolManager>(FRAMES, disk_manager.get());
 
@@ -344,13 +345,13 @@ TEST(BufferPoolManagerTest, DISABLED_DeadlockTest) {
   // Make the other thread wait for a bit.
   // This mimics the main thread doing some work while holding the write latch on page 0.
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
+  fmt::println("{}{}",__FILE__,__LINE__);
   // If your latching mechanism is incorrect, the next line of code will deadlock.
   // Think about what might happen if you hold a certain "all-encompassing" latch for too long...
 
   // While holding page 0, take the latch on page 1.
   const auto guard1 = bpm->WritePage(pid1);
-
+  fmt::println("{}{}",__FILE__,__LINE__);
   // Let the child thread have the page 0 since we're done with it.
   guard0.Drop();
 

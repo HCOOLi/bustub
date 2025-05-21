@@ -63,6 +63,7 @@ class InstrumentedSkipList : public SkipList<int, Compare, MaxHeight, Seed> {
           // The first node with a height greater than the current level
           // should be the next node at that level.
           if (heights[i] > level) {
+            GTEST_LOG_(INFO) << "Instrumented skiplist level " << level << "i" << i << std::endl;
             ASSERT_EQ(curr->Next(level)->Key(), keys[i]);
             break;
           }

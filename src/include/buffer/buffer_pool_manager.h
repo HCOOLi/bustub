@@ -171,5 +171,6 @@ class BufferPoolManager {
    * stored inside of it. Additionally, you may also want to implement a helper function that returns either a shared
    * pointer to a `FrameHeader` that already has a page's data stored inside of it, or an index to said `FrameHeader`.
    */
+  std::shared_ptr<FrameHeader> get_free_frame();
 };
 }  // namespace bustub

@@ -16,6 +16,7 @@
 #include <list>
 #include <mutex>  // NOLINT
 #include <optional>
+#include <queue>
 #include <unordered_map>
 #include <vector>
 
@@ -26,6 +27,14 @@
 namespace bustub {
 
 class LRUKNode {
+ public:
+  LRUKNode(size_t k, frame_id_t frame_id, size_t timestamp) : k_(k), fid_(frame_id) { history_.push_back(timestamp); }
+  auto Evictable() const -> bool;
+  auto SetEvictable(bool evictable);
+  auto AccessTimes() const -> size_t;
+  void Access(size_t timestamp);
+  auto KTimestamp() const -> size_t;
+
  private:
   /** History of last seen K timestamps of this page. Least recent timestamp stored in front. */
   // Remove maybe_unused if you start using them. Feel free to change the member variables as you want.
@@ -73,12 +82,14 @@ class LRUKReplacer {
  private:
   // TODO(student): implement me! You can replace these member variables as you like.
   // Remove maybe_unused if you start using them.
-  [[maybe_unused]] std::unordered_map<frame_id_t, LRUKNode> node_store_;
-  [[maybe_unused]] size_t current_timestamp_{0};
-  [[maybe_unused]] size_t curr_size_{0};
+  std::unordered_map<frame_id_t, std::shared_ptr<LRUKNode>> node_store_;
+  std::list<frame_id_t> history_;
+  std::list<frame_id_t> k_history_;
+  // size_t current_timestamp_{0};
+  size_t curr_size_{0};
   [[maybe_unused]] size_t replacer_size_;
-  [[maybe_unused]] size_t k_;
-  [[maybe_unused]] std::mutex latch_;
+  size_t k_;
+  std::mutex latch_;
 };
 
 }  // namespace bustub

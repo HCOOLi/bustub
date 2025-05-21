@@ -46,8 +46,8 @@ class SkipList {
  public:
   /**  @brief Constructs an empty skip list with an optional custom comparison function. */
   explicit SkipList(const Compare &compare = Compare{}) {
-   compare_ = compare;
-   header_=std::make_shared<SkipNode>(MaxHeight);
+    compare_ = compare;
+    header_ = std::make_shared<SkipNode>(MaxHeight);
   }
 
   /**
@@ -132,8 +132,8 @@ SKIPLIST_TEMPLATE_ARGUMENTS struct SkipList<K, Compare, MaxHeight, Seed>::SkipNo
    * @param key The key to store in the node (default empty for header)
    */
   explicit SkipNode(size_t height, K key = K{}) {
-   links_= std::vector<std::shared_ptr<SkipNode>>(height);
-   key_=key;
+    links_ = std::vector<std::shared_ptr<SkipNode>>(height);
+    key_ = key;
   }
 
   auto Height() const -> size_t;

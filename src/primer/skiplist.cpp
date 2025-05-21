@@ -56,7 +56,7 @@ SKIPLIST_TEMPLATE_ARGUMENTS void SkipList<K, Compare, MaxHeight, Seed>::Clear() 
   std::shared_lock lk(rwlock_);
   Drop();
   size_ = 0;
-  height_=1;
+  height_ = 1;
 }
 
 /**
@@ -72,35 +72,34 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Insert(c
   auto current_node = header_;
 
   auto path = std::vector<std::shared_ptr<SkipNode>>(MaxHeight);
-  for (int current_level = height_ - 1;current_level >= 0; current_level--) {
-      auto next_node = current_node->Next(current_level);
-      while (next_node != nullptr&&compare_(next_node->Key(), key)) {
-        current_node = next_node;
-        next_node = current_node->Next(current_level);
-      }
-      if (next_node != nullptr&&!compare_(next_node->Key(),key)&&!compare_(key,next_node->Key())) {
-        // already exists.
-        return false;
-      }
-      path[current_level]=current_node;
+  for (int current_level = height_ - 1; current_level >= 0; current_level--) {
+    auto next_node = current_node->Next(current_level);
+    while (next_node != nullptr && compare_(next_node->Key(), key)) {
+      current_node = next_node;
+      next_node = current_node->Next(current_level);
     }
+    if (next_node != nullptr && !compare_(next_node->Key(), key) && !compare_(key, next_node->Key())) {
+      // already exists.
+      return false;
+    }
+    path[current_level] = current_node;
+  }
 
   auto new_height = RandomHeight();
   if (new_height > height_) {
-    for (int current_level = height_ ; current_level < static_cast<int>(new_height); current_level++) {
-       path[current_level]=header_;
+    for (int current_level = height_; current_level < static_cast<int>(new_height); current_level++) {
+      path[current_level] = header_;
     }
-    height_=new_height;
+    height_ = new_height;
   }
 
-
-  auto new_node = std::make_shared<SkipNode>( new_height,key);
+  auto new_node = std::make_shared<SkipNode>(new_height, key);
 
   for (auto h = 0; h < static_cast<int>(new_height); h++) {
-      auto last_node = path[h];
-      new_node->links_[h] = last_node->links_[h];
-      last_node->links_[h] = new_node;
-    }
+    auto last_node = path[h];
+    new_node->links_[h] = last_node->links_[h];
+    last_node->links_[h] = new_node;
+  }
 
   size_++;
   return true;
@@ -117,21 +116,21 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Erase(co
   auto current_node = header_;
 
   auto path = std::vector<std::shared_ptr<SkipNode>>(MaxHeight);
-  for (int current_level = height_ - 1;current_level >= 0; current_level--) {
+  for (int current_level = height_ - 1; current_level >= 0; current_level--) {
     auto next_node = current_node->Next(current_level);
-    while (next_node != nullptr&&compare_(next_node->Key(), key)) {
+    while (next_node != nullptr && compare_(next_node->Key(), key)) {
       current_node = next_node;
       next_node = current_node->Next(current_level);
     }
-    path[current_level]=current_node;
+    path[current_level] = current_node;
   }
   current_node = current_node->Next(0);
-  if (current_node != nullptr&&!compare_(current_node->Key(),key)&&!compare_(key,current_node->Key())) {
+  if (current_node != nullptr && !compare_(current_node->Key(), key) && !compare_(key, current_node->Key())) {
     for (auto h = 0; h < static_cast<int>(height_); h++) {
-      if (path[h]!=current_node) {
+      if (path[h] != current_node) {
         break;
       }
-      path[h]->SetNext(h,current_node->Next(h));
+      path[h]->SetNext(h, current_node->Next(h));
     }
     //
     size_--;
@@ -146,7 +145,6 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Erase(co
     return true;
   }
   return false;
-
 }
 
 /**
@@ -160,13 +158,13 @@ SKIPLIST_TEMPLATE_ARGUMENTS auto SkipList<K, Compare, MaxHeight, Seed>::Contains
   // than the other: `!compare_(a, b) && !compare_(b, a)`.
   std::shared_lock lk(rwlock_);
   auto current_node = header_;
-  for (int current_level = height_ - 1;current_level >= 0; current_level--) {
+  for (int current_level = height_ - 1; current_level >= 0; current_level--) {
     auto next_node = current_node->Next(current_level);
-    while (next_node != nullptr&&compare_(next_node->Key(), key)) {
+    while (next_node != nullptr && compare_(next_node->Key(), key)) {
       current_node = next_node;
       next_node = current_node->Next(current_level);
     }
-    if (next_node != nullptr&&!compare_(next_node->Key(),key)&&!compare_(key,next_node->Key())) {
+    if (next_node != nullptr && !compare_(next_node->Key(), key) && !compare_(key, next_node->Key())) {
       return true;
     }
   }
